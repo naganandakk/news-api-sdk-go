@@ -1,3 +1,2 @@
-# News API SDK for Go
-Coming soon... this is where our officially supported SDK for Go is going to live.
+# News API (https://newsapi.org) SDK for Go
 
