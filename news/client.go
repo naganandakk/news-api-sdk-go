@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -14,6 +15,10 @@ var httpClient = &http.Client{}
 type Client struct {
 	apiKey     string
 	httpClient *http.Client
+}
+
+type Error struct {
+	Message string `json:"message"`
 }
 
 func NewClient(apiKey string) *Client {
@@ -50,13 +55,22 @@ func (c *Client) fetchData(endpoint string, queryParms map[string]string) (map[s
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		var errResponse Error
+
+		err = json.Unmarshal(body, &errResponse)
+
+		if err == nil {
+			log.Println(errResponse)
+			return response, errors.New(errResponse.Message)
+		}
+
+		return response, errors.New("api response status code is other than 2xx")
+	}
+
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return response, err
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return response, errors.New("api response status code is other than 2xx")
 	}
 
 	return response, nil
